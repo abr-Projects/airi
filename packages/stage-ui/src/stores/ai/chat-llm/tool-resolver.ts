@@ -7,6 +7,7 @@ import type { DescribeToolImage } from './tool-images'
 import { createSparkCommandTool } from '@proj-airi/core-agent/agents/spark-command'
 import { uniqBy } from 'es-toolkit'
 
+import { sceneDisplay } from '../../../features/scene-display/execute'
 import { createWebSearchTools, debug, mcp } from '../../../tools'
 import { useModsServerChannelStore } from '../../mods/api/channel-server'
 import { useWebSearchStore } from '../../modules/web-search'
@@ -49,6 +50,14 @@ export interface ResolveLlmToolsOptions {
    * @default gated on useWebSearchStore().configured
    */
   webSearchTools?: ToolSource
+  /**
+   * Scene display tools. They stay in the list even when no runtime registered
+   * a target, because the executor reports the missing target to the model
+   * instead of failing the request.
+   *
+   * @default sceneDisplay()
+   */
+  sceneDisplayTools?: ToolSource
   /**
    * Request-scoped tools from {@link StreamOptions.tools}. These are ordered
    * before active runtime tools so runtime registrations can intentionally
@@ -153,12 +162,14 @@ export async function resolveLlmTools(options: ResolveLlmToolsOptions = {}): Pro
   const [
     builtInTools,
     debugTools,
+    sceneDisplayTools,
     sparkCommandTools,
     webSearchTools,
     customTools,
   ] = await Promise.all([
     resolveToolSource(options.builtInTools ?? mcp),
     resolveToolSource(options.debugTools ?? debug),
+    resolveToolSource(options.sceneDisplayTools ?? (async () => sceneDisplay())),
     resolveSparkCommandTools(options.sparkCommandTools),
     resolveWebSearchTools(options.webSearchTools),
     resolveCustomTools(options.customTools),
@@ -168,6 +179,7 @@ export async function resolveLlmTools(options: ResolveLlmToolsOptions = {}): Pro
     [
       ...builtInTools,
       ...debugTools,
+      ...sceneDisplayTools,
       ...sparkCommandTools,
       ...webSearchTools,
       ...customTools,

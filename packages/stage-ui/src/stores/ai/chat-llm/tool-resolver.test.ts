@@ -67,6 +67,7 @@ describe('resolveLlmTools', () => {
       builtInTools: [builtInTool],
       debugTools: [],
       sparkCommandTools: [],
+      sceneDisplayTools: [],
       webSearchTools: [],
       customTools: [customTool],
       activeTools: [],
@@ -89,6 +90,7 @@ describe('resolveLlmTools', () => {
       builtInTools: [builtInTool],
       debugTools: [],
       sparkCommandTools: [],
+      sceneDisplayTools: [],
       webSearchTools: [],
       activeTools: [runtimeTool],
     })
@@ -106,12 +108,29 @@ describe('resolveLlmTools', () => {
       builtInTools: [builtInTool],
       debugTools: [],
       sparkCommandTools: [],
+      sceneDisplayTools: [],
       webSearchTools: [],
       customTools: [customTool],
       activeTools: [runtimeTool],
     })
 
     expect(tools).toEqual([builtInTool, runtimeTool])
+  })
+
+  it('mounts the scene display tool by default', async () => {
+    const tools = await resolveLlmTools({
+      builtInTools: [],
+      debugTools: [],
+      sparkCommandTools: [],
+      webSearchTools: [],
+      customTools: [],
+      activeTools: [],
+    })
+
+    // The tool stays in the list without a registered target. Its executor
+    // tells the model the runtime has no display, so a target is not a
+    // precondition for sending the request.
+    expect(tools.map(tool => toolNameFrom(tool))).toEqual(['stage_display'])
   })
 
   it('includes injected web-search tools in the resolved list', async () => {
@@ -122,6 +141,7 @@ describe('resolveLlmTools', () => {
       builtInTools: [builtInTool],
       debugTools: [],
       sparkCommandTools: [],
+      sceneDisplayTools: [],
       webSearchTools: [webSearchTool],
       activeTools: [],
     })
@@ -145,6 +165,7 @@ describe('resolveLlmTools', () => {
         builtInTools: [builtInTool],
         debugTools: [],
         sparkCommandTools: [],
+        sceneDisplayTools: [],
         activeTools: [],
       })
 
@@ -164,6 +185,7 @@ describe('resolveLlmTools', () => {
         builtInTools: [builtInTool],
         debugTools: [],
         sparkCommandTools: [],
+        sceneDisplayTools: [],
         activeTools: [],
       })
 
@@ -185,6 +207,7 @@ describe('resolveLlmTools', () => {
       const tools = await resolveLlmTools({
         builtInTools: [],
         debugTools: [],
+        sceneDisplayTools: [],
         webSearchTools: [],
         customTools: [],
         activeTools: [],

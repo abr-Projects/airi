@@ -2,6 +2,7 @@
 import { OnboardingDialog, OnboardingStepAnalyticsNotice, StartupOverlay, ToasterRoot } from '@proj-airi/stage-ui/components'
 import { useInferencePreload } from '@proj-airi/stage-ui/composables'
 import { useStartupResourceTimeout } from '@proj-airi/stage-ui/composables/use-startup-resource-timeout'
+import { registerSceneDisplayTarget, SceneDisplayOverlay } from '@proj-airi/stage-ui/features/scene-display'
 import { usePiniaSynced } from '@proj-airi/stage-ui/libs/pinia'
 import { initializeAnalytics, isAnalyticsAvailableInBuild } from '@proj-airi/stage-ui/libs/product-signals'
 import { useAuthStore } from '@proj-airi/stage-ui/stores/auth'
@@ -175,6 +176,11 @@ async function loadStartup() {
 
 onMounted(() => {
   void startup.run('route', () => router.isReady()).catch(error => console.error('Initial route failed:', error))
+  // The scene display tool runs where the LLM request runs, so only the leader
+  // owns a target. A follower leaves the store empty and the tool reports it.
+  if (syncedPinia.isLeader())
+    registerSceneDisplayTarget()
+
   void loadStartup()
 })
 
@@ -253,6 +259,8 @@ function openOnboardingAfterStartup() {
     />
 
     <PerformanceOverlay />
+
+    <SceneDisplayOverlay />
   </StartupOverlay>
 </template>
 

@@ -7,6 +7,7 @@ import { themeColorFromValue, useThemeColor } from '@proj-airi/stage-layouts/com
 import { artistrySyncConfig } from '@proj-airi/stage-shared'
 import { ToasterRoot } from '@proj-airi/stage-ui/components'
 import { useInferencePreload } from '@proj-airi/stage-ui/composables'
+import { registerSceneDisplayTarget, SceneDisplayOverlay } from '@proj-airi/stage-ui/features/scene-display'
 import { usePiniaSynced } from '@proj-airi/stage-ui/libs/pinia'
 import { initializeAnalytics } from '@proj-airi/stage-ui/libs/product-signals'
 import { useAuthStore } from '@proj-airi/stage-ui/stores/auth'
@@ -363,6 +364,11 @@ onMounted(async () => {
 
   await chatStore.initialize(syncedPinia)
 
+  // The scene display tool runs where the LLM request runs, so only the leader
+  // owns a target. A follower leaves the store empty and the tool reports it.
+  if (syncedPinia.isLeader())
+    registerSceneDisplayTarget()
+
   await fullStageRuntime?.initialize()
 })
 
@@ -388,6 +394,7 @@ onUnmounted(() => {
   </ToasterRoot>
   <ResizeHandler v-if="!isSpotlightWindow && !isFloatingChatWindow" />
   <RouterView />
+  <SceneDisplayOverlay v-if="!isSettingsWindow" />
 </template>
 
 <style>
